@@ -6,18 +6,30 @@ $(document).ready(function () {
   var itemsArray = localStorage.getItem("items")
     ? JSON.parse(localStorage.getItem("items"))
     : [];
-  localStorage.setItem("items", JSON.stringify(itemsArray));
+  if (itemsArray.length === 0)
+    localStorage.setItem("items", JSON.stringify(itemsArray));
 
-  itemsArray.forEach((item, index) => {
-    sectionHTML(item, index);
+  itemsArray.forEach((index) => {
+    sectionHTML(index, index.id);
   });
 
   form.on("submit", function (e) {
     e.preventDefault();
+    // id generation
+    const id = idGen.getId();
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const hour = date.getHours();
+    const minute = date.getMinutes();
+
     const tweet = {
+      id,
       name: "Baran Barış Bal",
       profilePic: "image/blank-profile-picture-973460_960_720.webp",
-      date: new Date(),
+      date: [day, "/", month, "/", year, "  ", hour, ":", minute],
+
       text: input.val(),
       comments: [],
       like: 0,
@@ -26,21 +38,13 @@ $(document).ready(function () {
       itemsArray.push(tweet);
       localStorage.setItem("items", JSON.stringify(itemsArray));
       input.val("");
-      sectionHTML(tweet);
+      sectionHTML(tweet, id);
     }
   });
 
-  function deleteSection(index) {
-    console.log(index);
-    $(`#${index}`).hide();
-    localStorage.removeItem(index);
-    div.empty();
-    itemsArray = [];
-  }
-
-  function sectionHTML(tweet, index) {
+  function sectionHTML(tweet, id) {
     const section = $("<section></section>");
-    section.attr("id", `section-${index}`);
+    section.attr("id", `section`);
     section.css("background-color", "#eee");
     section.addClass("container");
 
@@ -48,24 +52,24 @@ $(document).ready(function () {
     divContainer.addClass("container col-lg-12 my-5 py-5");
 
     const spanClose = $("<span></span>");
-    spanClose.attr("id", `${index}`);
+    spanClose.attr("id", `${id}`);
     spanClose.addClass("float-end");
     spanClose.css("cursor", "pointer");
     spanClose.text("X");
-    spanClose.on("click", () => {
-      $(`#section-${index}`).remove();
-      let itemsArray = JSON.parse(localStorage.getItem("items"));
-      console.log("items", itemsArray);
-      itemsArray = itemsArray.filter(item);
-      console.log("items", itemsArray);
-      localStorage.setItem("items", JSON.stringify(itemsArray));
-    });
-
-    spanClose.on("mouseenter", function () {
-      spanClose.css("color", "red");
-    });
-    spanClose.on("mouseleave", function () {
-      spanClose.css("color", "");
+    spanClose.on("click", function () {
+      let postId = $(this).attr("id");
+      console.log(postId);
+      let items = JSON.parse(localStorage.getItem("items")) || [];
+      console.log(items);
+      let updatedItems = items.filter(function (item) {
+        console.log(item.id, typeof item.id);
+        console.log(postId, typeof postId);
+        return item.id !== +postId;
+      });
+      console.log(updatedItems);
+      itemsArray = updatedItems;
+      localStorage.setItem("items", JSON.stringify(updatedItems));
+      $(this).closest("section").remove();
     });
 
     const divRow = $("<div></div>");
@@ -201,3 +205,11 @@ $(document).ready(function () {
     $("#tweets").prepend(section);
   }
 });
+function Generator() {}
+
+Generator.prototype.rand = Math.floor(Math.random() * 26) + Date.now();
+
+Generator.prototype.getId = function () {
+  return this.rand++;
+};
+var idGen = new Generator();
