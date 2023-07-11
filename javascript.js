@@ -10,7 +10,7 @@ $(document).ready(function () {
     localStorage.setItem("items", JSON.stringify(itemsArray));
 
   itemsArray.forEach((index) => {
-    sectionHTML(index, index.id, index.likeId, index.comments);
+    sectionHTML(index, index.id, index.likeId);
   });
 
   form.on("submit", function (e) {
@@ -46,20 +46,63 @@ $(document).ready(function () {
 
   function sectionHTML(tweet, id, likeId) {
     const section = $("<section></section>");
-    section.attr("id", `section`);
+    section.attr("id", `${id}`);
     section.css("background-color", "#eee");
     section.addClass("container");
 
     const divContainer = $("<div></div>");
     divContainer.addClass("container col-lg-12 my-5 py-5");
 
+    function sectionComment(comments, comtext, comdate, comLikeId) {
+      const divCommentText = $("<div></div>");
+      divCommentText.addClass("comment-text container col-lg-12 my-5 py-5 ");
+      divCommentText.css("background-color", "#f8f9fa");
+
+      const cText = $("<p></p>");
+      cText.attr("id", "commentid");
+      cText.addClass("mt-3 mb-4 pb-2");
+      cText.html(comtext);
+
+      const comlinkLike = $("<a></a>");
+      comlinkLike.attr("href", "#!");
+      comlinkLike.attr("id", `${comLikeId}`);
+      comlinkLike.addClass("d-flex align-items-center me-3");
+      comlinkLike.on("click", function () {
+        // let likeId = $(this).;
+
+        const tweet = itemsArray.find((item) => item.likeId === +likeId);
+
+        if (tweet) {
+          tweet.like++;
+          $(compLike).text("Like: " + tweet.like);
+
+          localStorage.setItem("items", JSON.stringify(itemsArray));
+        }
+      });
+
+      const comiLike = $("<i></i>");
+      comiLike.addClass("far fa-thumbs-up me-2");
+
+      const compLike = $("<p></p>");
+      compLike.addClass("like mb-0");
+      compLike.text("Like: ");
+      compLike.html("Like: " + comLikeId);
+
+      comlinkLike.append(comiLike);
+      comlinkLike.append(compLike);
+
+      divCommentText.append(cText);
+      divCommentText.append(comiLike);
+      console.log(cText);
+    }
+
     const spanClose = $("<span></span>");
-    spanClose.attr("id", `${id}`);
+    spanClose.attr("id", `span`);
     spanClose.addClass("float-end");
     spanClose.css("cursor", "pointer");
     spanClose.text("X");
     spanClose.on("click", function () {
-      let postId = $(this).attr("id");
+      let postId = $(this).parent("div").parent("section").attr("id");
 
       let items = JSON.parse(localStorage.getItem("items")) || [];
 
@@ -192,11 +235,13 @@ $(document).ready(function () {
 
     const btnShare = $("<button></button>");
     btnShare.attr("type", "button");
+    btnShare.attr("id", ``);
     btnShare.addClass("btn btn-primary btn-sm");
     btnShare.text("Paylaş");
-    btnShare.on("click", function () {
+    btnShare.on("click", function (comments) {
       const textareaValue = $("#textAreaExample").val();
 
+      const comLikeId = idGen.getId();
       const date = new Date();
       const year = date.getFullYear();
       const month = date.getMonth() + 1;
@@ -204,18 +249,37 @@ $(document).ready(function () {
       const hour = date.getHours();
       const minute = date.getMinutes();
       const comment = {
-        text: textareaValue,
-        date: [day, "/", month, "/", year, "  ", hour, ":", minute],
+        comtext: textareaValue,
+        comdate: [day, "/", month, "/", year, "  ", hour, ":", minute],
+        comLikeId: 0,
       };
-      if (comment.text.trim() !== "") {
-        const postId = $(this).closest("section").attr("id"); // Tweetin id'sini al
-        const tweet = itemsArray.find((item) => item.id === postId);
-      }
 
-      if (tweet) {
+      // }
+      const postId = $(this)
+        .parent("div")
+        .parent("div")
+        .parent("div")
+        .parent("div")
+        .parent("div")
+        .parent("div")
+        .parent("section")
+        .attr("id");
+      const tweet = itemsArray.find((item) => item.id === +postId);
+      itemsArray.find((item) => console.log(item.id));
+      console.log(+postId);
+
+      // if (tweet) {
+      //   tweet.comments.push(comment);
+      //   localStorage.setItem("items", JSON.stringify(itemsArray));
+      //   console.log("Yorum paylaşıldı: ", comment);
+      // }
+      if (comment.comtext !== "") {
+        console.log(tweet);
         tweet.comments.push(comment);
         localStorage.setItem("items", JSON.stringify(itemsArray));
+        textareaComment.val("");
         console.log("Yorum paylaşıldı: ", comment);
+        sectionComment(comment.comtext, comment.comdate, comment.comLikeId);
       }
     });
 
@@ -245,6 +309,7 @@ $(document).ready(function () {
     $("#tweets").prepend(section);
   }
 });
+
 function Generator() {}
 
 Generator.prototype.rand = Math.floor(Math.random() * 26) + Date.now();
