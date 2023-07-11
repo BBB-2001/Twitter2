@@ -10,13 +10,14 @@ $(document).ready(function () {
     localStorage.setItem("items", JSON.stringify(itemsArray));
 
   itemsArray.forEach((index) => {
-    sectionHTML(index, index.id);
+    sectionHTML(index, index.id, index.likeId, index.comments);
   });
 
   form.on("submit", function (e) {
     e.preventDefault();
     // id generation
     const id = idGen.getId();
+    const likeId = idGen.getId();
     const date = new Date();
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
@@ -26,6 +27,7 @@ $(document).ready(function () {
 
     const tweet = {
       id,
+      likeId,
       name: "Baran Barış Bal",
       profilePic: "image/blank-profile-picture-973460_960_720.webp",
       date: [day, "/", month, "/", year, "  ", hour, ":", minute],
@@ -38,11 +40,11 @@ $(document).ready(function () {
       itemsArray.push(tweet);
       localStorage.setItem("items", JSON.stringify(itemsArray));
       input.val("");
-      sectionHTML(tweet, id);
+      sectionHTML(tweet, id, likeId);
     }
   });
 
-  function sectionHTML(tweet, id) {
+  function sectionHTML(tweet, id, likeId) {
     const section = $("<section></section>");
     section.attr("id", `section`);
     section.css("background-color", "#eee");
@@ -58,9 +60,9 @@ $(document).ready(function () {
     spanClose.text("X");
     spanClose.on("click", function () {
       let postId = $(this).attr("id");
-      console.log(postId);
+
       let items = JSON.parse(localStorage.getItem("items")) || [];
-      console.log(items);
+
       let updatedItems = items.filter(function (item) {
         console.log(item.id, typeof item.id);
         console.log(postId, typeof postId);
@@ -115,18 +117,32 @@ $(document).ready(function () {
     pText.html(tweet.text);
 
     const divSmall = $("<div></div>");
-    divSmall.addClass("small d-flex justify-content-start");
+    divSmall.addClass("small d-flex justify-content-start ");
 
     const linkLike = $("<a></a>");
     linkLike.attr("href", "#!");
+    linkLike.attr("id", `${likeId}`);
     linkLike.addClass("d-flex align-items-center me-3");
+    linkLike.on("click", function () {
+      let likeId = $(this).attr("id");
+
+      const tweet = itemsArray.find((item) => item.likeId === +likeId);
+
+      if (tweet) {
+        tweet.like++;
+        $(pLike).text("Like: " + tweet.like);
+
+        localStorage.setItem("items", JSON.stringify(itemsArray));
+      }
+    });
 
     const iLike = $("<i></i>");
     iLike.addClass("far fa-thumbs-up me-2");
 
     const pLike = $("<p></p>");
-    pLike.addClass("mb-0");
-    pLike.text("Like");
+    pLike.addClass("like mb-0");
+    pLike.text("Like: ");
+    pLike.html("Like: " + tweet.like);
 
     linkLike.append(iLike);
     linkLike.append(pLike);
@@ -178,6 +194,30 @@ $(document).ready(function () {
     btnShare.attr("type", "button");
     btnShare.addClass("btn btn-primary btn-sm");
     btnShare.text("Paylaş");
+    btnShare.on("click", function () {
+      const textareaValue = $("#textAreaExample").val();
+
+      const date = new Date();
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      const hour = date.getHours();
+      const minute = date.getMinutes();
+      const comment = {
+        text: textareaValue,
+        date: [day, "/", month, "/", year, "  ", hour, ":", minute],
+      };
+      if (comment.text.trim() !== "") {
+        const postId = $(this).closest("section").attr("id"); // Tweetin id'sini al
+        const tweet = itemsArray.find((item) => item.id === postId);
+      }
+
+      if (tweet) {
+        tweet.comments.push(comment);
+        localStorage.setItem("items", JSON.stringify(itemsArray));
+        console.log("Yorum paylaşıldı: ", comment);
+      }
+    });
 
     const btnCancel = $("<button></button>");
     btnCancel.attr("type", "button");
