@@ -11,15 +11,18 @@ $(document).ready(function () {
 
   itemsArray.forEach((index) => {
     sectionHTML(index, index.id, index.likeId);
-    // sectionComment(
-    //   index.id,
-    //   index.comments,
-    //   index.comId,
-    //   index.comment,
-    //   index.comtext,
-    //   index.comdate,
-    //   index.comLikeId
-    // );
+    index.comments.forEach((item) => {
+      sectionComment(
+        index.id,
+        item.comId,
+        item.comLike,
+        item.comtext,
+        item.comdate,
+        item.likeId,
+        item.profilePic,
+        item.name
+      );
+    });
   });
 
   form.on("submit", function (e) {
@@ -53,6 +56,166 @@ $(document).ready(function () {
     }
   });
 
+  function sectionComment(
+    id,
+    comId,
+    comLike,
+    comtext,
+    comdate,
+    comLikeId,
+    profilePic,
+    name
+  ) {
+    console.log("id", id);
+    const divCommentText = $("<div></div>");
+    divCommentText.attr("id", `${comId}`);
+    divCommentText.addClass("comment-text container col-lg-12 my-5 py-5 ");
+    divCommentText.css("background-color", "#f8f9fa");
+
+    const spanClose = $("<span></span>");
+    spanClose.attr("id", `span`);
+    spanClose.addClass("float-end");
+    spanClose.css("cursor", "pointer");
+    spanClose.text("X");
+    spanClose.on("click", function () {
+      let commentId = $(this).parent("div").attr("id");
+      console.log(commentId);
+
+      let items = JSON.parse(localStorage.getItem("items"));
+
+      let updatedItems = items.map(function (item) {
+        // {console.log(item.id, typeof item.id);
+        // console.log(postId, typeof postId);}
+
+        if (item.id === +id)
+          item.comments = item.comments.filter(
+            (comment) => comment.comId !== +commentId
+          );
+        return item;
+      });
+      console.log(updatedItems);
+
+      localStorage.setItem("items", JSON.stringify(updatedItems));
+      $(this).closest("div").remove();
+    });
+
+    const divRow = $("<div></div>");
+    divRow.addClass("row d-flex justify-content-center");
+
+    const divCol = $("<div></div>");
+    divCol.addClass("col-md-12 col-lg-10 col-xl-8");
+
+    const divProfile = $("<div></div>");
+    divProfile.addClass("profile");
+
+    const divProfileBody = $("<div></div>");
+    divProfileBody.addClass("profile-body");
+
+    const divFlex = $("<div></div>");
+    divFlex.addClass("d-flex flex-start align-items-center");
+
+    const imgAvatar = $("<img>");
+    imgAvatar.attr("src", profilePic);
+    imgAvatar.attr("alt", "avatar");
+    imgAvatar.attr("width", "30");
+    imgAvatar.attr("height", "30");
+    imgAvatar.addClass("rounded-circle shadow-1-strong me-3");
+
+    const divProfileInfo = $("<div></div>");
+    const h6Name = $("<h9></h9>");
+    h6Name.addClass("fw-bold text-primary mb-1");
+    h6Name.html(name);
+    const divDateTime = $("<div></div>");
+    divDateTime.attr("id", "DateTime");
+    divDateTime.addClass("text-muted small mb-0");
+    divDateTime.html(comdate);
+
+    divProfileInfo.append(h6Name);
+    divProfileInfo.append(divDateTime);
+
+    divFlex.append(imgAvatar);
+    divFlex.append(divProfileInfo);
+
+    const pText = $("<p></p>");
+    pText.attr("id", "textid");
+    pText.addClass("mt-3 mb-4 pb-2");
+    pText.html(comtext);
+
+    const divSmall = $("<div></div>");
+    divSmall.addClass("small d-flex justify-content-start ");
+
+    const linkLike = $("<a></a>");
+    linkLike.attr("href", "#!");
+    linkLike.attr("id", `${comLikeId}`);
+    linkLike.addClass("d-flex align-items-center me-3");
+    linkLike.on("click", function () {
+      let comLikeId = $(this).attr("id");
+      let items = JSON.parse(localStorage.getItem("items"));
+
+      let updatedItems = items.map(function (item) {
+        if (item.comments.comLikeId === +comLikeId) {
+          item.comments.forEach(function (comment) {
+            if (comment.comId === +commentId) {
+              comment.comLike++;
+
+              let pLike = $(this).find(".pLike");
+              $(pLike).text("Like: " + comment.comLike);
+            }
+          });
+        }
+        return item;
+      });
+
+      localStorage.setItem("items", JSON.stringify(updatedItems));
+    });
+
+    const iLike = $("<i></i>");
+    iLike.addClass("far fa-thumbs-up me-2");
+
+    const pLike = $("<p></p>");
+    pLike.addClass("like mb-0");
+    pLike.text("Like: ");
+    pLike.html("Like: " + comLike);
+
+    linkLike.append(iLike);
+    linkLike.append(pLike);
+
+    divSmall.append(linkLike);
+
+    divProfileBody.append(divFlex);
+    divProfileBody.append(pText);
+    divProfileBody.append(divSmall);
+
+    const divCardFooter = $("<div></div>");
+    divCardFooter.addClass("card-footer py-3 border-0 mr-3");
+    divCardFooter.css("background-color", "#f8f9fa");
+
+    const divFooterFlex = $("<div></div>");
+    divFooterFlex.addClass("d-flex flex-start w-100 mr-3");
+
+    const imgFooterAvatar = $("<img>");
+    imgFooterAvatar.attr("src", profilePic);
+    imgFooterAvatar.attr("alt", "avatar");
+    imgFooterAvatar.attr("width", "40");
+    imgFooterAvatar.attr("height", "40");
+    imgFooterAvatar.addClass("rounded-circle shadow-1-strong me-2");
+
+    divProfile.append(divProfileBody);
+    divProfile.append(divCardFooter);
+
+    divCol.append(divProfile);
+
+    divRow.append(divCol);
+
+    divCommentText.append(spanClose);
+    divCommentText.append(divRow);
+
+    // section select
+    // divComment append to section
+    const parentSection = $(`#${id}`);
+    parentSection.append(divCommentText);
+  }
+
   function sectionHTML(tweet, id, likeId) {
     const section = $("<section></section>");
     section.attr("id", `${id}`);
@@ -61,151 +224,6 @@ $(document).ready(function () {
 
     const divContainer = $("<div></div>");
     divContainer.addClass("container col-lg-12 my-5 py-5");
-
-    function sectionComment(
-      id,
-      comments,
-      comId,
-      comment,
-      comtext,
-      comdate,
-      comLikeId
-    ) {
-      console.log(comments);
-      const divCommentText = $("<div></div>");
-      divCommentText.attr("id", `${comId}`);
-      divCommentText.addClass("comment-text container col-lg-12 my-5 py-5 ");
-      divCommentText.css("background-color", "#f8f9fa");
-
-      const spanClose = $("<span></span>");
-      spanClose.attr("id", `span`);
-      spanClose.addClass("float-end");
-      spanClose.css("cursor", "pointer");
-      spanClose.text("X");
-      spanClose.on("click", function () {
-        let postId = $(this).parent("div").attr("id");
-
-        let items = JSON.parse(localStorage.getItem("items")) || [];
-
-        let updatedItems = items.filter(function (item) {
-          console.log(item.id, typeof item.id);
-          console.log(postId, typeof postId);
-          return item.id !== +postId;
-        });
-        console.log(updatedItems);
-        itemsArray = updatedItems;
-        localStorage.setItem("items", JSON.stringify(updatedItems));
-        $(this).closest("div").remove();
-      });
-
-      const divRow = $("<div></div>");
-      divRow.addClass("row d-flex justify-content-center");
-
-      const divCol = $("<div></div>");
-      divCol.addClass("col-md-12 col-lg-10 col-xl-8");
-
-      const divProfile = $("<div></div>");
-      divProfile.addClass("profile");
-
-      const divProfileBody = $("<div></div>");
-      divProfileBody.addClass("profile-body");
-
-      const divFlex = $("<div></div>");
-      divFlex.addClass("d-flex flex-start align-items-center");
-
-      const imgAvatar = $("<img>");
-      imgAvatar.attr("src", tweet.profilePic);
-      imgAvatar.attr("alt", "avatar");
-      imgAvatar.attr("width", "60");
-      imgAvatar.attr("height", "60");
-      imgAvatar.addClass("rounded-circle shadow-1-strong me-3");
-
-      const divProfileInfo = $("<div></div>");
-      const h6Name = $("<h6></h6>");
-      h6Name.addClass("fw-bold text-primary mb-1");
-      h6Name.html(tweet.name);
-      const divDateTime = $("<div></div>");
-      divDateTime.attr("id", "DateTime");
-      divDateTime.addClass("text-muted small mb-0");
-      divDateTime.html(comments);
-
-      divProfileInfo.append(h6Name);
-      divProfileInfo.append(divDateTime);
-
-      divFlex.append(imgAvatar);
-      divFlex.append(divProfileInfo);
-
-      const pText = $("<p></p>");
-      pText.attr("id", "textid");
-      pText.addClass("mt-3 mb-4 pb-2");
-      pText.html(comment.comtext);
-
-      const divSmall = $("<div></div>");
-      divSmall.addClass("small d-flex justify-content-start ");
-
-      const linkLike = $("<a></a>");
-      linkLike.attr("href", "#!");
-      linkLike.attr("id", `${comLikeId}`);
-      linkLike.addClass("d-flex align-items-center me-3");
-      linkLike.on("click", function () {
-        let likeId = $(this).attr("id");
-
-        const tweet = itemsArray.find((item) => item.likeId === +likeId);
-
-        if (tweet) {
-          tweet.like++;
-          $(pLike).text("Like: " + tweet.like);
-
-          localStorage.setItem("items", JSON.stringify(itemsArray));
-        }
-      });
-
-      const iLike = $("<i></i>");
-      iLike.addClass("far fa-thumbs-up me-2");
-
-      const pLike = $("<p></p>");
-      pLike.addClass("like mb-0");
-      pLike.text("Like: ");
-      pLike.html("Like: " + tweet.like);
-
-      linkLike.append(iLike);
-      linkLike.append(pLike);
-
-      divSmall.append(linkLike);
-
-      divProfileBody.append(divFlex);
-      divProfileBody.append(pText);
-      divProfileBody.append(divSmall);
-
-      const divCardFooter = $("<div></div>");
-      divCardFooter.addClass("card-footer py-3 border-0 mr-3");
-      divCardFooter.css("background-color", "#f8f9fa");
-
-      const divFooterFlex = $("<div></div>");
-      divFooterFlex.addClass("d-flex flex-start w-100 mr-3");
-
-      const imgFooterAvatar = $("<img>");
-      imgFooterAvatar.attr("src", tweet.profilePic);
-      imgFooterAvatar.attr("alt", "avatar");
-      imgFooterAvatar.attr("width", "40");
-      imgFooterAvatar.attr("height", "40");
-      imgFooterAvatar.addClass("rounded-circle shadow-1-strong me-2");
-
-      divProfile.append(divProfileBody);
-      divProfile.append(divCardFooter);
-
-      divCol.append(divProfile);
-
-      divRow.append(divCol);
-
-      divCommentText.append(spanClose);
-      divCommentText.append(divRow);
-
-      // section select
-      // divComment append to section
-      const parentSection = $(`#${id}`);
-      parentSection.append(divCommentText);
-    }
 
     const spanClose = $("<span></span>");
     spanClose.attr("id", `span`);
@@ -349,7 +367,7 @@ $(document).ready(function () {
     btnShare.attr("id", ``);
     btnShare.addClass("btn btn-primary btn-sm");
     btnShare.text("Paylaş");
-    btnShare.on("click", function (comments) {
+    btnShare.on("click", function () {
       const textareaValue = $("#textAreaExample").val();
       const comId = idGen.getId();
       const comLikeId = idGen.getId();
@@ -364,7 +382,9 @@ $(document).ready(function () {
         comtext: textareaValue,
         comdate: [day, "/", month, "/", year, "  ", hour, ":", minute],
         comLikeId,
-        comlike: 0,
+        comLike: 0,
+        name: "Baran Barış Bal",
+        profilePic: "image/blank-profile-picture-973460_960_720.webp",
       };
 
       const tweet = itemsArray.find((item) => item.id === +id);
@@ -385,10 +405,13 @@ $(document).ready(function () {
 
         sectionComment(
           id,
-          comments,
           comment.comId,
+          comment.comLike,
           comment.comtext,
-          comment.comLikeId
+          comment.comdate,
+          comment.comLikeId,
+          comment.profilePic,
+          comment.name
         );
       }
     });
