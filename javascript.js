@@ -9,22 +9,26 @@ $(document).ready(function () {
   if (itemsArray.length === 0)
     localStorage.setItem("items", JSON.stringify(itemsArray));
 
-  itemsArray.forEach((index) => {
-    sectionHTML(index, index.id, index.likeId);
-    index.comments.forEach((item) => {
-      sectionComment(
-        index.id,
-
-        item.comId,
-        item.comLike,
-        item.comtext,
-        item.comdate,
-        item.likeId,
-        item.profilePic,
-        item.name
-      );
+  function loadItems() {
+    itemsArray.forEach((index) => {
+      sectionHTML(index, index.id, index.likeId);
+      index.comments.forEach((item) => {
+        sectionComment(
+          index.id,
+          item.comId,
+          item.comLike,
+          item.comtext,
+          item.comdate,
+          item.likeId,
+          item.profilePic,
+          item.name
+        );
+      });
     });
-  });
+  }
+
+  // Sayfa yenilendiğinde verileri yükle
+  loadItems();
 
   form.on("submit", function (e) {
     e.preventDefault();
@@ -71,7 +75,7 @@ $(document).ready(function () {
     console.log("id", id);
     const divCommentText = $("<div></div>");
     divCommentText.attr("id", `${comId}`);
-    divCommentText.addClass("comment-text container col-lg-12 my-5 py-5 ");
+    divCommentText.addClass("comment-text container col-lg-12 pt-3 mb-3");
     divCommentText.css("background-color", "#f8f9fa");
 
     const spanClose = $("<span></span>");
@@ -140,7 +144,7 @@ $(document).ready(function () {
 
     const pText = $("<p></p>");
     pText.attr("id", "textid");
-    pText.addClass("mt-3 mb-4 pb-2");
+    pText.addClass("mt-3 mb-4 pb-2 text-break");
     pText.html(comtext);
 
     const divSmall = $("<div></div>");
@@ -152,7 +156,6 @@ $(document).ready(function () {
     linkLike.addClass("d-flex align-items-center me-3");
     linkLike.on("click", function () {
       let comLikeId = $(this).attr("id");
-
       let items = JSON.parse(localStorage.getItem("items"));
 
       let updatedItems = items.map(function (item) {
@@ -161,7 +164,7 @@ $(document).ready(function () {
             comment.comLike++;
             $(pLike).text("Like: " + comment.comLike);
 
-            // Güncellenmiş comment.comLike değerini localStorage'da tutmak için:
+            console.log("deneme");
           }
           return comment;
         });
@@ -226,10 +229,10 @@ $(document).ready(function () {
     const section = $("<section></section>");
     section.attr("id", `${id}`);
     section.css("background-color", "#eee");
-    section.addClass("container");
+    section.addClass("container pb-1");
 
     const divContainer = $("<div></div>");
-    divContainer.addClass("container col-lg-12 my-5 py-5");
+    divContainer.addClass("container col-lg-12 my-3 py-3");
 
     const spanClose = $("<span></span>");
     spanClose.attr("id", `span`);
@@ -276,7 +279,7 @@ $(document).ready(function () {
 
     const divProfileInfo = $("<div></div>");
     const h6Name = $("<h6></h6>");
-    h6Name.addClass("fw-bold text-primary mb-1");
+    h6Name.addClass("fw-bold text-primary mb-1 d-flex ");
     h6Name.html(tweet.name);
     const divDateTime = $("<div></div>");
     divDateTime.attr("id", "DateTime");
@@ -291,7 +294,7 @@ $(document).ready(function () {
 
     const pText = $("<p></p>");
     pText.attr("id", "textid");
-    pText.addClass("mt-3 mb-4 pb-2");
+    pText.addClass("mt-3 mb-4 pb-2 text-break");
     pText.html(tweet.text);
 
     const divSmall = $("<div></div>");
@@ -452,3 +455,21 @@ Generator.prototype.getId = function () {
   return this.rand++;
 };
 var idGen = new Generator();
+
+$(window).on("load", function () {
+  var itemsArray = localStorage.getItem("items")
+    ? JSON.parse(localStorage.getItem("items"))
+    : [];
+
+  itemsArray.forEach(function (item) {
+    item.comments.forEach(function (comment) {
+      var commentLike = localStorage.getItem(
+        `commentLike_${comment.comLikeId}`
+      );
+      if (commentLike !== null) {
+        comment.comLike = parseInt(commentLike);
+        $(`#${comment.comId} .like`).text("Like: " + comment.comLike);
+      }
+    });
+  });
+});
