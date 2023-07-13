@@ -14,6 +14,7 @@ $(document).ready(function () {
     index.comments.forEach((item) => {
       sectionComment(
         index.id,
+
         item.comId,
         item.comLike,
         item.comtext,
@@ -58,6 +59,7 @@ $(document).ready(function () {
 
   function sectionComment(
     id,
+
     comId,
     comLike,
     comtext,
@@ -150,20 +152,24 @@ $(document).ready(function () {
     linkLike.addClass("d-flex align-items-center me-3");
     linkLike.on("click", function () {
       let comLikeId = $(this).attr("id");
+
       let items = JSON.parse(localStorage.getItem("items"));
 
       let updatedItems = items.map(function (item) {
-        if (item.comments.comLikeId === +comLikeId) {
-          item.comments.forEach(function (comment) {
-            if (comment.comId === +commentId) {
-              comment.comLike++;
+        let updatedComments = item.comments.map(function (comment) {
+          if (comment.comLikeId === +comLikeId) {
+            comment.comLike++;
+            $(pLike).text("Like: " + comment.comLike);
 
-              let pLike = $(this).find(".pLike");
-              $(pLike).text("Like: " + comment.comLike);
-            }
-          });
-        }
-        return item;
+            // Güncellenmiş comment.comLike değerini localStorage'da tutmak için:
+          }
+          return comment;
+        });
+
+        return {
+          ...item,
+          comments: updatedComments,
+        };
       });
 
       localStorage.setItem("items", JSON.stringify(updatedItems));
@@ -405,6 +411,7 @@ $(document).ready(function () {
 
         sectionComment(
           id,
+
           comment.comId,
           comment.comLike,
           comment.comtext,
@@ -416,13 +423,7 @@ $(document).ready(function () {
       }
     });
 
-    const btnCancel = $("<button></button>");
-    btnCancel.attr("type", "button");
-    btnCancel.addClass("btn btn-outline-primary btn-sm");
-    btnCancel.text("İptal");
-
     divFooterButtons.append(btnShare);
-    divFooterButtons.append(btnCancel);
 
     divCardFooter.append(divFooterFlex);
     divCardFooter.append(divFooterButtons);
