@@ -9,26 +9,23 @@ $(document).ready(function () {
   if (itemsArray.length === 0)
     localStorage.setItem("items", JSON.stringify(itemsArray));
 
-  function loadItems() {
-    itemsArray.forEach((index) => {
-      sectionHTML(index, index.id, index.likeId);
-      index.comments.forEach((item) => {
-        sectionComment(
-          index.id,
-          item.comId,
-          item.comLike,
-          item.comtext,
-          item.comdate,
-          item.likeId,
-          item.profilePic,
-          item.name
-        );
-      });
+  itemsArray.forEach((index) => {
+    sectionHTML(index, index.id, index.likeId);
+    index.comments.forEach((item) => {
+      sectionComment(
+        index.id,
+        item.comId,
+        item.comLike,
+        item.comtext,
+        item.comdate,
+        item.comLikeId,
+        item.profilePic,
+        item.name
+      );
     });
-  }
+  });
 
   // Sayfa yenilendiğinde verileri yükle
-  loadItems();
 
   form.on("submit", function (e) {
     e.preventDefault();
@@ -72,20 +69,18 @@ $(document).ready(function () {
     profilePic,
     name
   ) {
-    console.log("id", id);
     const divCommentText = $("<div></div>");
     divCommentText.attr("id", `${comId}`);
     divCommentText.addClass("comment-text container col-lg-12 pt-3 mb-3");
     divCommentText.css("background-color", "#f8f9fa");
 
     const spanClose = $("<span></span>");
-    spanClose.attr("id", `span`);
+    spanClose.attr("id", "span");
     spanClose.addClass("float-end");
     spanClose.css("cursor", "pointer");
     spanClose.text("X");
     spanClose.on("click", function () {
       let commentId = $(this).parent("div").attr("id");
-      console.log(commentId);
 
       let items = JSON.parse(localStorage.getItem("items"));
 
@@ -93,13 +88,14 @@ $(document).ready(function () {
         // {console.log(item.id, typeof item.id);
         // console.log(postId, typeof postId);}
 
-        if (item.id === +id)
+        if (item.id === +id) {
           item.comments = item.comments.filter(
             (comment) => comment.comId !== +commentId
           );
+          $(`#${comId}`).remove(); // DOM'dan yorumu kaldır
+        }
         return item;
       });
-      console.log(updatedItems);
 
       localStorage.setItem("items", JSON.stringify(updatedItems));
       $(this).closest("div").remove();
@@ -155,7 +151,6 @@ $(document).ready(function () {
     linkLike.attr("id", `${comLikeId}`);
     linkLike.addClass("d-flex align-items-center me-3");
     linkLike.on("click", function () {
-      let comLikeId = $(this).attr("id");
       let items = JSON.parse(localStorage.getItem("items"));
 
       let updatedItems = items.map(function (item) {
@@ -163,8 +158,6 @@ $(document).ready(function () {
           if (comment.comLikeId === +comLikeId) {
             comment.comLike++;
             $(pLike).text("Like: " + comment.comLike);
-
-            console.log("deneme");
           }
           return comment;
         });
@@ -182,7 +175,7 @@ $(document).ready(function () {
     iLike.addClass("far fa-thumbs-up me-2");
 
     const pLike = $("<p></p>");
-    pLike.addClass("like mb-0");
+    pLike.addClass("comlike mb-0");
     pLike.text("Like: ");
     pLike.html("Like: " + comLike);
 
