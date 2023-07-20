@@ -43,31 +43,21 @@ $(document).ready(function () {
                 comments: tweet.comments,
                 like: tweet.like_count,
               };
-              arr = [...arr, processedTweet];
 
               sectionHTML(processedTweet, tweet.post_id, tweet.like_count);
-              // tweets.forEach((item) => {
-              //   const comment = {
-              //     id: tweet.post_id,
-              //     comId: item.id,
-              //     name: item.username,
-              //     profilePic: item.profile_photo,
-              //     date: item.created_at,
-              //     text: item.comment_text,
-              //     comtext: item.comments,
-              //     like: item.like_count,
-              //   };
-              //   sectionComment(
-              //     tweet.post_id,
-              //     item.id,
-              //     item.comLike,
-              //     item.comment_text,
-              //     item.created_at,
-              //     item.comLikeId,
-              //     item.profile_photo,
-              //     item.username
-              //   );
-              // });
+              arr = [...arr, processedTweet];
+              tweets.forEach((item) => {
+                sectionComment(
+                  tweet.id,
+                  tweet.post_id,
+                  item.comment_id,
+                  item.comment_text,
+                  item.created_at,
+                  "image/blank-profile-picture-973460_960_720.webp",
+                  item.username
+                );
+              });
+              console.log("sectionComment", sectionComment.item);
             });
           },
           error: function (error) {
@@ -106,6 +96,7 @@ $(document).ready(function () {
           comments: response.post.comments,
           like: response.post.like_count,
         };
+        console.log(processedTweet);
         if (input.val() !== "") {
           // Yapılacak işlemler (örneğin, verilerin kaydedilmesi veya gösterilmesi)
           console.log(input);
@@ -128,12 +119,11 @@ $(document).ready(function () {
 });
 
 function sectionComment(
+  comment,
   id,
   comId,
-  comLike,
   comtext,
   comdate,
-  comLikeId,
   profilePic,
   name
 ) {
@@ -147,25 +137,22 @@ function sectionComment(
   spanClose.addClass("float-end");
   spanClose.css("cursor", "pointer");
   spanClose.text("X");
-  spanClose.on("click", function () {
-    let commentId = $(this).parent("div").attr("id");
-
-    let items = JSON.parse(localStorage.getItem("items"));
-
-    let updatedItems = items.map(function (item) {
-      // {console.log(item.id, typeof item.id);
-      // console.log(postId, typeof postId);}
-
-      if (item.id === +id) {
-        item.comments = item.comments.filter(
-          (comment) => comment.comId !== +commentId
-        );
-        $(`#${comId}`).remove(); // DOM'dan yorumu kaldır
-      }
-      return item;
+  spanClose.on("click", function (e) {
+    e.preventDefault();
+    const token = localStorage.getItem("token");
+    $.ajax({
+      url: `http://192.168.1.18:3001/tweets/${comId}`,
+      method: "DELETE",
+      beforeSend: function (xhr) {
+        xhr.setRequestHeader("Authorization", `bearer ${token}`);
+      },
+      success: function (response) {
+        console.log("Veri başarıyla silindi");
+      },
+      error: function (xhr, status, error) {
+        console.error("Veri silme hatası:", error);
+      },
     });
-
-    localStorage.setItem("items", JSON.stringify(updatedItems));
     $(this).closest("div").remove();
   });
 
@@ -198,7 +185,7 @@ function sectionComment(
   const divDateTime = $("<div></div>");
   divDateTime.attr("id", "DateTime");
   divDateTime.addClass("text-muted small mb-0");
-  divDateTime.html(comdate);
+  divDateTime.html(comment.comdate);
 
   divProfileInfo.append(h6Name);
   divProfileInfo.append(divDateTime);
@@ -216,36 +203,13 @@ function sectionComment(
 
   const linkLike = $("<a></a>");
   linkLike.attr("href", "#!");
-  linkLike.attr("id", `${comLikeId}`);
+  linkLike.attr("id", "");
   linkLike.addClass("d-flex align-items-center me-3");
-  linkLike.on("click", function () {
-    let items = JSON.parse(localStorage.getItem("items"));
-
-    let updatedItems = items.map(function (item) {
-      let updatedComments = item.comments.map(function (comment) {
-        if (comment.comLikeId === +comLikeId) {
-          comment.comLike++;
-          $(pLike).text("Like: " + comment.comLike);
-        }
-        return comment;
-      });
-
-      return {
-        ...item,
-        comments: updatedComments,
-      };
-    });
-
-    localStorage.setItem("items", JSON.stringify(updatedItems));
-  });
 
   const iLike = $("<i></i>");
-  iLike.addClass("far fa-thumbs-up me-2");
 
   const pLike = $("<p></p>");
   pLike.addClass("comlike mb-0");
-  pLike.text("Like: ");
-  pLike.html("Like: " + comLike);
 
   linkLike.append(iLike);
   linkLike.append(pLike);
@@ -264,7 +228,7 @@ function sectionComment(
   divFooterFlex.addClass("d-flex flex-start w-100 mr-3");
 
   const imgFooterAvatar = $("<img>");
-  imgFooterAvatar.attr("src", profilePic);
+  imgFooterAvatar.attr("src", comment.profilePic);
   imgFooterAvatar.attr("alt", "avatar");
   imgFooterAvatar.attr("width", "40");
   imgFooterAvatar.attr("height", "40");
@@ -450,18 +414,17 @@ function sectionHTML(processedTweet, id, likeId) {
           comId: response.comment.post_id,
           comtext: response.comment.comment_text,
           comdate: response.comment.created_at,
-          name: response.comment.username,
           profilePic: "image/blank-profile-picture-973460_960_720.webp",
+          name: response.comment.username,
         };
 
         if (textareaValue.val() !== "") {
           sectionComment(
+            comment,
             id,
             comment.comId,
-            comment.comLike,
             comment.comtext,
             comment.date,
-            comment.comLikeId,
             comment.profilePic,
             comment.name
           );
