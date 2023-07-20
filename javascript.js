@@ -32,24 +32,37 @@ $(document).ready(function () {
             console.log(response);
             const tweets = response.posts;
             tweets.reverse();
+
             tweets.forEach((tweet) => {
               const processedTweet = {
-                id: tweet.post_id,
-                likeId: tweet.like_count,
-                name: tweet.username,
-                profilePic: tweet.profile_photo,
-                date: tweet.created_at,
-                text: tweet.post_text,
-                comments: tweet.comments,
-                like: tweet.like_count,
+                id: tweet.post.post_id,
+                likeId: tweet.post.like_count,
+                name: tweet.post.user.username,
+                profilePic: "image/blank-profile-picture-973460_960_720.webp",
+                date: tweet.post.create_dat,
+                text: tweet.post.post_text,
+                comments: tweet.post.comments,
+                like: tweet.post.like_count,
               };
 
-              sectionHTML(processedTweet, tweet.post_id, tweet.like_count);
               arr = [...arr, processedTweet];
-              tweets.forEach((item) => {
+              sectionHTML(
+                processedTweet,
+                tweet.post.post_id,
+                tweet.post.like_count
+              );
+              tweet.post.comments.forEach((item) => {
+                const comments = {
+                  id: tweet.post.post_id,
+                  comId: item.comment_id,
+                  comtext: item.comment_text,
+                  comdate: item.created_at,
+                  profilePic: "image/blank-profile-picture-973460_960_720.webp",
+                  name: item.user.username,
+                };
                 sectionComment(
-                  tweet.id,
-                  tweet.post_id,
+                  comments,
+                  tweet.post.post_id,
                   item.comment_id,
                   item.comment_text,
                   item.created_at,
@@ -57,7 +70,8 @@ $(document).ready(function () {
                   item.username
                 );
               });
-              console.log("sectionComment", sectionComment.item);
+              console.log("sectionComment", sectionComment);
+              console.log(processedTweet);
             });
           },
           error: function (error) {
@@ -141,7 +155,7 @@ function sectionComment(
     e.preventDefault();
     const token = localStorage.getItem("token");
     $.ajax({
-      url: `http://192.168.1.18:3001/tweets/${comId}`,
+      url: `http://192.168.1.18:3001/comments/${comId}`,
       method: "DELETE",
       beforeSend: function (xhr) {
         xhr.setRequestHeader("Authorization", `bearer ${token}`);
@@ -181,7 +195,7 @@ function sectionComment(
   const divProfileInfo = $("<div></div>");
   const h6Name = $("<h9></h9>");
   h6Name.addClass("fw-bold text-primary mb-1");
-  h6Name.html(name);
+  h6Name.html(comment.name);
   const divDateTime = $("<div></div>");
   divDateTime.attr("id", "DateTime");
   divDateTime.addClass("text-muted small mb-0");
