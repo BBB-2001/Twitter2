@@ -54,16 +54,19 @@ $(document).ready(function () {
                 tweet.post.like_count
               );
               tweet.post.comments.forEach((item) => {
-                const comments = {
+                const processedComment = {
                   id: tweet.post.post_id,
+                  user: item.user.id,
                   comId: item.comment_id,
                   comtext: item.comment_text,
                   comdate: item.created_at,
                   profilePic: "image/blank-profile-picture-973460_960_720.webp",
                   name: item.user.username,
                 };
+
                 sectionComment(
-                  comments,
+                  loggedInUser,
+                  processedComment,
                   tweet.post.post_id,
                   item.comment_id,
                   item.comment_text,
@@ -102,6 +105,7 @@ $(document).ready(function () {
         console.log(response);
         const processedTweet = {
           id: response.post.post_id,
+          user: response.post.post_user,
           likeId: response.post.like_count,
           name: response.post.username,
           profilePic: "image/blank-profile-picture-973460_960_720.webp",
@@ -115,6 +119,7 @@ $(document).ready(function () {
           console.log(input);
           input.val("");
           sectionHTML(
+            loggedInUser,
             processedTweet,
             response.post.post_id,
             response.post.like_count
@@ -139,6 +144,7 @@ function logout() {
 }
 
 function sectionComment(
+  loggedInUser,
   comment,
   id,
   comId,
@@ -152,29 +158,32 @@ function sectionComment(
   divCommentText.addClass("comment-text container col-lg-12 pt-3 mb-3");
   divCommentText.css("background-color", "#f8f9fa");
 
-  const spanClose = $("<span></span>");
-  spanClose.attr("id", "span");
-  spanClose.addClass("float-end");
-  spanClose.css("cursor", "pointer");
-  spanClose.text("X");
-  spanClose.on("click", function (e) {
-    e.preventDefault();
-    const token = localStorage.getItem("token");
-    $.ajax({
-      url: `http://192.168.1.18:3001/comments/${comId}`,
-      method: "DELETE",
-      beforeSend: function (xhr) {
-        xhr.setRequestHeader("Authorization", `bearer ${token}`);
-      },
-      success: function (response) {
-        console.log("Veri başarıyla silindi");
-      },
-      error: function (xhr, status, error) {
-        console.error("Veri silme hatası:", error);
-      },
+  let spanClose = null;
+  if (comment.user === loggedInUser.id) {
+    spanClose = $("<span></span>");
+    spanClose.attr("id", "span");
+    spanClose.addClass("float-end");
+    spanClose.css("cursor", "pointer");
+    spanClose.text("X");
+    spanClose.on("click", function (e) {
+      e.preventDefault();
+      const token = localStorage.getItem("token");
+      $.ajax({
+        url: `http://192.168.1.18:3001/comments/${comId}`,
+        method: "DELETE",
+        beforeSend: function (xhr) {
+          xhr.setRequestHeader("Authorization", `bearer ${token}`);
+        },
+        success: function (response) {
+          console.log("Veri başarıyla silindi");
+        },
+        error: function (xhr, status, error) {
+          console.error("Veri silme hatası:", error);
+        },
+      });
+      $(this).closest("div").remove();
     });
-    $(this).closest("div").remove();
-  });
+  }
 
   const divRow = $("<div></div>");
   divRow.addClass("row d-flex justify-content-center");
@@ -216,7 +225,7 @@ function sectionComment(
   const pText = $("<p></p>");
   pText.attr("id", "textid");
   pText.addClass("mt-3 mb-4 pb-2 text-break");
-  pText.html(comtext);
+  pText.html(comment.comtext);
 
   const divSmall = $("<div></div>");
   divSmall.addClass("small d-flex justify-content-start ");
@@ -281,7 +290,6 @@ function sectionHTML(loggedInUser, processedTweet, id, likeId) {
 
   let spanClose = null;
   if (processedTweet.user === loggedInUser.id) {
-    console.log("yes");
     spanClose = $("<span></span>");
     spanClose.attr("id", `span`);
     spanClose.addClass("float-end");
@@ -455,15 +463,19 @@ function sectionHTML(loggedInUser, processedTweet, id, likeId) {
       success: function (response) {
         console.log(response);
         const comment = {
-          comId: response.comment.post_id,
+          id: response.comment.post_id,
+          user: response.comment.comment_user,
+          comId: response.comment.comment_id,
           comtext: response.comment.comment_text,
           comdate: response.comment.created_at,
           profilePic: "image/blank-profile-picture-973460_960_720.webp",
           name: response.comment.username,
         };
+        console.log(comment);
 
         if (textareaValue.val() !== "") {
           sectionComment(
+            loggedInUser,
             comment,
             id,
             comment.comId,
