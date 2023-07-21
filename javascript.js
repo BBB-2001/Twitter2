@@ -11,6 +11,7 @@ $(document).ready(function () {
   const input = $("#item");
   const itemsArray = [];
   let arr = [];
+  var loggedInUser = null;
 
   const res = $.ajax({
     url: "http://192.168.1.18:3001/authenticated",
@@ -19,9 +20,8 @@ $(document).ready(function () {
       xhr.setRequestHeader("Authorization", `bearer ${token}`);
     },
     success: function (response) {
-      console.log(response);
-
       if (response.user) {
+        loggedInUser = response.user;
         $.ajax({
           url: "http://192.168.1.18:3001/tweets",
           method: "GET",
@@ -29,17 +29,18 @@ $(document).ready(function () {
             Authorization: `bearer ${token}`,
           },
           success: function (response) {
-            console.log(response);
             const tweets = response.posts;
+
             tweets.reverse();
 
             tweets.forEach((tweet) => {
               const processedTweet = {
                 id: tweet.post.post_id,
+                user: tweet.post.post_user,
                 likeId: tweet.post.like_count,
                 name: tweet.post.user.username,
                 profilePic: "image/blank-profile-picture-973460_960_720.webp",
-                date: tweet.post.create_dat,
+                date: tweet.post.created_at,
                 text: tweet.post.post_text,
                 comments: tweet.post.comments,
                 like: tweet.post.like_count,
@@ -47,6 +48,7 @@ $(document).ready(function () {
 
               arr = [...arr, processedTweet];
               sectionHTML(
+                loggedInUser,
                 processedTweet,
                 tweet.post.post_id,
                 tweet.post.like_count
@@ -70,8 +72,6 @@ $(document).ready(function () {
                   item.username
                 );
               });
-              console.log("sectionComment", sectionComment);
-              console.log(processedTweet);
             });
           },
           error: function (error) {
@@ -92,9 +92,9 @@ $(document).ready(function () {
       post_text: input.val(),
     };
     $.ajax({
-      url: "http://192.168.1.18:3001/tweets", // Veriyi göndereceğiniz adres
-      method: "POST", // HTTP POST isteği yapılıyor
-      data: data, // Gönderilecek veri
+      url: "http://192.168.1.18:3001/tweets",
+      method: "POST",
+      data: data,
       beforeSend: function (xhr) {
         xhr.setRequestHeader("Authorization", `bearer ${token}`);
       },
@@ -112,7 +112,6 @@ $(document).ready(function () {
         };
         console.log(processedTweet);
         if (input.val() !== "") {
-          // Yapılacak işlemler (örneğin, verilerin kaydedilmesi veya gösterilmesi)
           console.log(input);
           input.val("");
           sectionHTML(
@@ -122,15 +121,22 @@ $(document).ready(function () {
           );
         }
         console.log("Veri başarıyla gönderildi");
-        // Gönderme işleminden sonra yapılacak işlemleri buraya ekleyebilirsiniz
       },
       error: function (xhr, status, error) {
-        // Gönderme sırasında bir hata oluştuğunda çalışacak işlev
         console.error("Veri gönderme hatası:", error);
       },
     });
   });
 });
+$("#logout").click(function () {
+  logout();
+  console.log("Veri silindi.");
+});
+function logout() {
+  localStorage.removeItem("token");
+
+  location.reload();
+}
 
 function sectionComment(
   comment,
@@ -199,7 +205,7 @@ function sectionComment(
   const divDateTime = $("<div></div>");
   divDateTime.attr("id", "DateTime");
   divDateTime.addClass("text-muted small mb-0");
-  divDateTime.html(comment.comdate);
+  divDateTime.html(moment(comment.comdate).format("LLLL"));
 
   divProfileInfo.append(h6Name);
   divProfileInfo.append(divDateTime);
@@ -264,7 +270,7 @@ function sectionComment(
   parentSection.append(divCommentText);
 }
 
-function sectionHTML(processedTweet, id, likeId) {
+function sectionHTML(loggedInUser, processedTweet, id, likeId) {
   const section = $("<section></section>");
   section.attr("id", `${id}`);
   section.css("background-color", "#eee");
@@ -273,29 +279,34 @@ function sectionHTML(processedTweet, id, likeId) {
   const divContainer = $("<div></div>");
   divContainer.addClass("container col-lg-12 my-3 py-3");
 
-  const spanClose = $("<span></span>");
-  spanClose.attr("id", `span`);
-  spanClose.addClass("float-end");
-  spanClose.css("cursor", "pointer");
-  spanClose.text("X");
-  spanClose.on("click", function (e) {
-    e.preventDefault();
-    const token = localStorage.getItem("token");
-    $.ajax({
-      url: `http://192.168.1.18:3001/tweets/${id}`,
-      method: "DELETE",
-      beforeSend: function (xhr) {
-        xhr.setRequestHeader("Authorization", `bearer ${token}`);
-      },
-      success: function (response) {
-        console.log("Veri başarıyla silindi");
-      },
-      error: function (xhr, status, error) {
-        console.error("Veri silme hatası:", error);
-      },
+  let spanClose = null;
+  if (processedTweet.user === loggedInUser.id) {
+    console.log("yes");
+    spanClose = $("<span></span>");
+    spanClose.attr("id", `span`);
+    spanClose.addClass("float-end");
+    spanClose.css("cursor", "pointer");
+    spanClose.text("X");
+    spanClose.on("click", function (e) {
+      e.preventDefault();
+      const token = localStorage.getItem("token");
+
+      $.ajax({
+        url: `http://192.168.1.18:3001/tweets/${id}`,
+        method: "DELETE",
+        beforeSend: function (xhr) {
+          xhr.setRequestHeader("Authorization", `bearer ${token}`);
+        },
+        success: function (response) {
+          console.log("Veri başarıyla silindi");
+        },
+        error: function (xhr, status, error) {
+          console.error("Veri silme hatası:", error);
+        },
+      });
+      $(this).closest("section").remove();
     });
-    $(this).closest("section").remove();
-  });
+  }
 
   const divRow = $("<div></div>");
   divRow.addClass("row d-flex justify-content-center");
@@ -326,7 +337,7 @@ function sectionHTML(processedTweet, id, likeId) {
   const divDateTime = $("<div></div>");
   divDateTime.attr("id", "DateTime");
   divDateTime.addClass("text-muted small mb-0");
-  divDateTime.html(processedTweet.date);
+  divDateTime.html(moment(processedTweet.date).format("LLLL"));
 
   divProfileInfo.append(h6Name);
   divProfileInfo.append(divDateTime);
@@ -346,7 +357,26 @@ function sectionHTML(processedTweet, id, likeId) {
   linkLike.attr("href", "#!");
   linkLike.attr("id", `${likeId}`);
   linkLike.addClass("d-flex align-items-center me-3");
-  linkLike.on("click", function () {});
+  linkLike.on("click", function () {
+    data = {
+      is_liked,
+    };
+    if (is_liked) {
+      $.ajax({
+        url: `http://192.168.1.18:3001/tweets`,
+        type: "POST",
+
+        data: data,
+        success: function (data) {
+          // REST API'dan dönen yanıtı işleme kodları burada bulunabilir (gerekirse)
+          console.log(data);
+        },
+        error: function (error) {
+          console.error("Error:", error);
+        },
+      });
+    }
+  });
 
   const iLike = $("<i></i>");
   iLike.addClass("far fa-thumbs-up me-2");
