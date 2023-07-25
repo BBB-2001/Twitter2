@@ -1,5 +1,6 @@
 const token = localStorage.getItem("token");
 var loggedInUser = null;
+let arr = [];
 $(document).ready(function () {
   if (!token) {
     window.location.href = "login.html";
@@ -10,12 +11,11 @@ $(document).ready(function () {
   const button1 = $("#button-1");
   const input = $("#item");
   const itemsArray = [];
-  let arr = [];
 
   var user = null;
 
   const res = $.ajax({
-    url: "http://192.168.1.18:3001/authenticated",
+    url: "http://192.168.1.37:3001/authenticated",
     method: "GET",
     beforeSend: function (xhr) {
       xhr.setRequestHeader("Authorization", `bearer ${token}`);
@@ -24,7 +24,7 @@ $(document).ready(function () {
       if (response.user) {
         loggedInUser = response.user;
         $.ajax({
-          url: "http://192.168.1.18:3001/tweets",
+          url: "http://192.168.1.37:3001/tweets",
           method: "GET",
           headers: {
             Authorization: `bearer ${token}`,
@@ -34,11 +34,11 @@ $(document).ready(function () {
 
             tweets.reverse();
 
-            tweets.forEach((tweet) => {
+            tweets.forEach((tweet, index) => {
               const processedTweet = {
                 id: tweet.post.post_id,
                 user: tweet.post.post_user,
-                likeId: tweet.post.like_count,
+                is_liked: tweet.post.is_liked,
                 name: tweet.post.user.username,
                 profilePic: "image/blank-profile-picture-973460_960_720.webp",
                 date: tweet.post.created_at,
@@ -52,7 +52,8 @@ $(document).ready(function () {
                 loggedInUser,
                 processedTweet,
                 tweet.post.post_id,
-                tweet.post.like_count
+                tweet.post.like_count,
+                index
               );
 
               tweet.post.comments.forEach((item) => {
@@ -98,7 +99,7 @@ $(document).ready(function () {
       post_text: input.val(),
     };
     $.ajax({
-      url: "http://192.168.1.18:3001/tweets",
+      url: "http://192.168.1.37:3001/tweets",
       method: "POST",
       data: data,
       beforeSend: function (xhr) {
@@ -109,7 +110,7 @@ $(document).ready(function () {
         const processedTweet = {
           id: response.post.post_id,
           user: response.post.post_user,
-          likeId: response.post.like_count,
+          is_liked,
           name: response.post.username,
           profilePic: "image/blank-profile-picture-973460_960_720.webp",
           date: response.post.created_at,
@@ -172,7 +173,7 @@ function sectionComment(
       e.preventDefault();
       const token = localStorage.getItem("token");
       $.ajax({
-        url: `http://192.168.1.18:3001/comments/${comId}`,
+        url: `http://192.168.1.37:3001/comments/${comId}`,
         method: "DELETE",
         beforeSend: function (xhr) {
           xhr.setRequestHeader("Authorization", `bearer ${token}`);
@@ -282,7 +283,7 @@ function sectionComment(
   parentSection.append(divCommentText);
 }
 
-function sectionHTML(loggedInUser, processedTweet, id, likeId, users) {
+function sectionHTML(loggedInUser, processedTweet, id, likeId, index) {
   const section = $("<section></section>");
   section.attr("id", `${id}`);
   section.css("background-color", "#eee");
@@ -303,7 +304,7 @@ function sectionHTML(loggedInUser, processedTweet, id, likeId, users) {
       const token = localStorage.getItem("token");
 
       $.ajax({
-        url: `http://192.168.1.18:3001/tweets/${id}`,
+        url: `http://192.168.1.37:3001/tweets/${id}`,
         method: "DELETE",
         beforeSend: function (xhr) {
           xhr.setRequestHeader("Authorization", `bearer ${token}`);
@@ -369,7 +370,13 @@ function sectionHTML(loggedInUser, processedTweet, id, likeId, users) {
   linkLike.attr("id", `${likeId}`);
   linkLike.addClass("d-flex align-items-center me-3");
   linkLike.on("click", function () {
-    getLikeUnlike(processedTweet.id);
+    getLikeUnlike(
+      processedTweet.id,
+      processedTweet.is_liked,
+      processedTweet.like,
+      pLike,
+      index
+    );
   });
 
   const iLike = $("<i></i>");
@@ -440,7 +447,7 @@ function sectionHTML(loggedInUser, processedTweet, id, likeId, users) {
       post_id: id,
     };
     $.ajax({
-      url: `http://192.168.1.18:3001/comments`,
+      url: `http://192.168.1.37:3001/comments`,
       method: "POST",
       data: data,
       beforeSend: function (xhr) {
@@ -510,110 +517,48 @@ Generator.prototype.getId = function () {
 };
 var idGen = new Generator();
 
-$(window).on("load", function () {
-  var itemsArray = localStorage.getItem("items")
-    ? JSON.parse(localStorage.getItem("items"))
-    : [];
-
-  itemsArray.forEach(function (item) {
-    item.comments.forEach(function (comment) {
-      var commentLike = localStorage.getItem(
-        `commentLike_${comment.comLikeId}`
-      );
-      if (commentLike !== null) {
-        comment.comLike = parseInt(commentLike);
-        $(`#${comment.comId} .like`).text("Like: " + comment.comLike);
-      }
-    });
-  });
-});
-function getLikeUnlike(id) {
-  $.ajax({
-    url: `http://localhost:3001/tweets/liked/user/${id}`, // Değiştirmeniz gereken API endpoint'i buraya yazın.
-    type: "GET",
-    beforeSend: function (xhr) {
-      xhr.setRequestHeader("Authorization", `bearer ${token}`);
-    },
-    success: function (data) {
-      console.log("data", data);
-      user = data.user;
-
-      user.forEach(function (item) {
-        const users = {
-          liked_id: item.user.post_id,
-          liked_user: item.user.user_id,
-        };
-      });
-      if (users.liked_use !== loggedInUser.id) {
-        // Beğeni zaten yapılmış, geri al
-        const like = processedTweet.like;
-        $.ajax({
-          url: `http://192.168.1.18:3001/likes/${post_id}`,
-          type: "POST",
-          success: function () {
-            like++;
-            $(pLike).text("Like: " + processedTweet.like);
-          },
-        });
-      } else {
-        $.ajax({
-          url: `http://192.168.1.18:3001/likes/${post_id}`,
-          type: "DELETE",
-          success: function () {
-            likeButton.text("Like");
-          },
-        });
-      }
-    },
-    error: function (xhr, status, error) {
-      console.error(error); // Hata durumunda konsolda hatayı gösterin
-    },
-  });
-}
-function getLikeUnlike(id, users) {
+function getLikeUnlike(id, is_liked, like, pLike, index) {
   const token = localStorage.getItem("token");
   if (!token) {
     console.error("Token not found!");
     return;
   }
+  console.log(arr[index]);
+  if (arr[index].is_liked === true) {
+    $.ajax({
+      url: `http://192.168.1.37:3001/likes/${id}`,
+      type: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
 
-  $.ajax({
-    url: `http://192.168.1.18:3001/likes/${id}`,
-    type: "POST",
-    beforeSend: function (xhr) {
-      xhr.setRequestHeader("Authorization", `bearer ${token}`);
-    },
-    success: function (data) {
-      console.log("data", data);
+      success: function (data) {
+        console.log("Like removed successfully");
+        arr[index].is_liked = false;
+        arr[index].like--;
+        pLike.html("Like: " + arr[index].like);
+      },
+      error: function (error) {
+        console.error("Error removing like:", error);
+      },
+    });
+  } else {
+    $.ajax({
+      url: `http://192.168.1.37:3001/likes/${id}`,
+      type: "POST",
+      beforeSend: function (xhr) {
+        xhr.setRequestHeader("Authorization", `bearer ${token}`);
+      },
+      success: function (data) {
+        console.log("Liked successfully", data);
 
-      data.forEach(function (item) {
-        const users = {
-          liked_id: item.user.post_id,
-          liked_user: item.user.user_id,
-        };
-      });
-      // Giriş yapan kullanıcı tarafından beğenilmiş bir tweet var mı kontrol edin
-
-      if (users.user_id === loggedInUser.id) {
-        // Beğeni zaten yapılmış, geri al
-        $.ajax({
-          url: `http://192.168.1.18:3001/likes/${id}`,
-          type: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          success: function () {
-            console.log("Like removed successfully");
-            // Burada beğeni sayısını azaltabilir ve sayfada güncelleyebilirsiniz.
-          },
-          error: function (error) {
-            console.error("Error removing like:", error);
-          },
-        });
-      }
-    },
-    error: function (error) {
-      console.error("Error fetching liked users:", error);
-    },
-  });
+        arr[index].like++;
+        pLike.html("Like: " + arr[index].like);
+        arr[index].is_liked = true;
+      },
+      error: function (error) {
+        console.error("Error fetching liked users:", error);
+      },
+    });
+  }
 }

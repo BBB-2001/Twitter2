@@ -106,7 +106,7 @@ $(document).ready(function () {
             password: passwordval,
           };
 
-          $.post("http://192.168.1.18:3001/register", data)
+          $.post("http://192.168.1.37:3001/register", data)
             .done(function (response) {
               console.log(response);
               alert("Kayıt işlemi başarıyla tamamlandı.");

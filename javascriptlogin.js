@@ -77,7 +77,7 @@ function createLoginForm() {
         password: loginpasswordval.val(),
       };
       console.log("data", data);
-      $.post("http://192.168.1.18:3001/login", data)
+      $.post("http://192.168.1.37:3001/login", data)
         .done(function (response) {
           console.log(response);
           localStorage.setItem("token", response.token);
