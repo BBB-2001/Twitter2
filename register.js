@@ -110,6 +110,9 @@ $(document).ready(function () {
             .done(function (response) {
               console.log(response);
               alert("Kayıt işlemi başarıyla tamamlandı.");
+              localStorage.setItem("token", response.token);
+              localStorage.setItem("user", JSON.stringify(response.user));
+              window.location.href = "index.html";
             })
             .fail(function () {
               alert("Kayıt işlemi başarısız oldu.");

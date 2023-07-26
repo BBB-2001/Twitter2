@@ -21,46 +21,57 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
   </head>
   <body>
-    <div class="logout-button">
-      <button
-        id="logout"
-        type=""
-        name="hesaptan çık"
-        class="btn btn-primary btn-sm float-end d-inline-block"
-      >
-        Hesaptan Çık
-      </button>
-    </div>
-    <div class="container">
-      <div
-        class="row d-inline-flex form-control form-outline w-100 card-footer py-3 border-0 rounded-lg"
-        style="background-color: #f8f9fa"
-      >
-        <form class="form-group">
-          <textarea
-            class="col-md-12 col-lg-10 col-xl-8 border-0.1 form-control rounded-mg align-items-center"
-            id="item"
-            type="text"
-            placeholder="Bu Gün Nasil Hissediyorsun ?"
-            rows="4"
-            style="resize: none"
-          ></textarea>
-          <div class="float-end pt-1">
-            <button
-              id="button-1"
-              type="submit "
-              name="tweet at"
-              class="btn btn-primary btn-sm float-end d-inline-block"
-            >
-              Paylaş<i class="fa-solid fa-share fa-bounce"></i>
-            </button>
-          </div>
-        </form>
-        <div id="tweets"></div>
+    <div class="sidebar">
+      <i class="fab fa-twitter"></i>
+      <div class="sidebarOption active">
+        <span class="material-icons"> home</span>
+        <h2>Anasayfa</h2>
       </div>
+      <div id="logout" class="sidebarOption">
+        <span class="material-icons"> logout </span>
+        <h2>Çıkış</h2>
+      </div>
+      <button class="sidebar_tweet">Tweet</button>
     </div>
+    
+      <div class="feed">
+        <div class="feed_header">
+          <h2>Anasayfa</h2>
+        </div>
+        <div class="tweetBox">
+          <form class="form-group">
+            <div class="tweetBox_input">
+              <img src="image/blank-profile-picture-973460_960_720.webp" />
+              <input
+                class="text"
+                id="item"
+                type="text"
+                placeholder="Neler Oluyor ?"
+                rows="4"
+                style="resize: none"
+              ></input>
+            </div>
+            <div class="float-end pt-1">
+              <button
+                id="button-1"
+                type="submit "
+                name="tweet at"
+                class="tweetBox_tweetButton"
+              >
+                Tweetle</i>
+              </button>
+            </div>
+          </form>
+          <div id="tweets"></div>
+        </div>
+      </div>
+    
 
     <script src="javascript.js"></script>
     <script src="fontawesome-free-6.4.0-web/js/all.min.js"></script>

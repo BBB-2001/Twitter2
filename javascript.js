@@ -110,7 +110,7 @@ $(document).ready(function () {
         const processedTweet = {
           id: response.post.post_id,
           user: response.post.post_user,
-          is_liked,
+          is_liked: false,
           name: response.post.username,
           profilePic: "image/blank-profile-picture-973460_960_720.webp",
           date: response.post.created_at,
@@ -218,7 +218,7 @@ function sectionComment(
   const divDateTime = $("<div></div>");
   divDateTime.attr("id", "DateTime");
   divDateTime.addClass("text-muted small mb-0");
-  divDateTime.html(moment(comment.comdate).format("LLLL"));
+  divDateTime.html(moment(comment.comdate).startOf("hour").fromNow());
 
   divProfileInfo.append(h6Name);
   divProfileInfo.append(divDateTime);
@@ -286,8 +286,8 @@ function sectionComment(
 function sectionHTML(loggedInUser, processedTweet, id, likeId, index) {
   const section = $("<section></section>");
   section.attr("id", `${id}`);
-  section.css("background-color", "#eee");
-  section.addClass("container pb-1");
+  section.css("background-color", "");
+  section.addClass(" pb-1");
 
   const divContainer = $("<div></div>");
   divContainer.addClass("container col-lg-12 my-3 py-3");
@@ -349,7 +349,7 @@ function sectionHTML(loggedInUser, processedTweet, id, likeId, index) {
   const divDateTime = $("<div></div>");
   divDateTime.attr("id", "DateTime");
   divDateTime.addClass("text-muted small mb-0");
-  divDateTime.html(moment(processedTweet.date).format("LLLL"));
+  divDateTime.html(moment(processedTweet.date).endOf("hour").fromNow());
 
   divProfileInfo.append(h6Name);
   divProfileInfo.append(divDateTime);
@@ -436,8 +436,8 @@ function sectionHTML(loggedInUser, processedTweet, id, likeId, index) {
   const btnShare = $("<button></button>");
   btnShare.attr("type", "button");
   btnShare.attr("id", ``);
-  btnShare.addClass("btn btn-primary btn-sm");
-  btnShare.text("Paylaş");
+  btnShare.addClass("tweetBox_tweetButton");
+  btnShare.text("Yanıtla");
   btnShare.on("click", function () {
     const token = localStorage.getItem("token");
     const textareaValue = $(`#textAreaExample-${id}`);
