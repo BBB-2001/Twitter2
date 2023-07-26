@@ -109,7 +109,6 @@ body {
 .tweetBox {
   padding-bottom: 10px;
   border-bottom: 8px solid var(--twitter-background);
-  padding-right: 10px;
 }
 
 .tweetBox form {
@@ -138,7 +137,30 @@ body {
   border-radius: 30px;
   width: 80px;
   height: 40px;
-  margin-top: 20px;
+  margin-top: 10px;
   margin-left: auto;
   float: right;
+  margin-right: 10px;
 }
+
+.comment-text {
+  border-bottom: 1px solid var(--twitter-background);
+}
+
+.section {
+  border-bottom: 1px solid var(--twitter-background);
+  border-top: 1px solid var(--twitter-background);
+}
+
+/* .likeButton {
+  
+  background-color: #ccc;
+  color: #000;
+}
+
+.likeButton.liked {
+  
+  background-color: #f00;
+  color: #fff;
+} 
+*/

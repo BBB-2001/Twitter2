@@ -4,7 +4,7 @@ $(document).ready(function () {
   section.addClass("section pb-1");
 
   const container = $("<div></div>");
-  container.addClass("container justify-content-center text-center");
+  container.addClass(" justify-content-center text-center");
   container.css("background-color", "#f8f9fa");
 
   const loginForm = createLoginForm();

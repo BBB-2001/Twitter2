@@ -146,6 +146,9 @@ function logout() {
 
   location.reload();
 }
+$("#focusButton").on("click", function () {
+  $("#item").focus();
+});
 
 function sectionComment(
   loggedInUser,
@@ -160,7 +163,7 @@ function sectionComment(
   const divCommentText = $("<div></div>");
   divCommentText.attr("id", `${comId}`);
   divCommentText.addClass("comment-text container col-lg-12 pt-3 mb-3");
-  divCommentText.css("background-color", "#f8f9fa");
+  divCommentText.css("background-color", "");
 
   let spanClose = null;
   if (comment.user === loggedInUser.id) {
@@ -255,7 +258,7 @@ function sectionComment(
 
   const divCardFooter = $("<div></div>");
   divCardFooter.addClass("card-footer py-3 border-0 mr-3");
-  divCardFooter.css("background-color", "#f8f9fa");
+  divCardFooter.css("background-color", "");
 
   const divFooterFlex = $("<div></div>");
   divFooterFlex.addClass("d-flex flex-start w-100 mr-3");
@@ -287,10 +290,10 @@ function sectionHTML(loggedInUser, processedTweet, id, likeId, index) {
   const section = $("<section></section>");
   section.attr("id", `${id}`);
   section.css("background-color", "");
-  section.addClass(" pb-1");
+  section.addClass("  pb-1");
 
   const divContainer = $("<div></div>");
-  divContainer.addClass("container col-lg-12 my-3 py-3");
+  divContainer.addClass(" section container col-lg-12 my-3 py-3");
 
   let spanClose = null;
   if (processedTweet.user === loggedInUser.id) {
@@ -367,8 +370,8 @@ function sectionHTML(loggedInUser, processedTweet, id, likeId, index) {
 
   const linkLike = $("<a></a>");
   linkLike.attr("href", "#!");
-  linkLike.attr("id", `${likeId}`);
-  linkLike.addClass("d-flex align-items-center me-3");
+  linkLike.attr("id", "");
+  linkLike.addClass("likeButton d-flex align-items-center me-3");
   linkLike.on("click", function () {
     getLikeUnlike(
       processedTweet.id,
@@ -398,7 +401,7 @@ function sectionHTML(loggedInUser, processedTweet, id, likeId, index) {
 
   const divCardFooter = $("<div></div>");
   divCardFooter.addClass("card-footer py-3 border-0 mr-3");
-  divCardFooter.css("background-color", "#f8f9fa");
+  divCardFooter.css("background-color", "");
 
   const divFooterFlex = $("<div></div>");
   divFooterFlex.addClass("d-flex flex-start w-100 mr-3");
@@ -537,6 +540,7 @@ function getLikeUnlike(id, is_liked, like, pLike, index) {
         arr[index].is_liked = false;
         arr[index].like--;
         pLike.html("Like: " + arr[index].like);
+        $(id + ".likeButton").removeClass("liked");
       },
       error: function (error) {
         console.error("Error removing like:", error);
@@ -555,6 +559,7 @@ function getLikeUnlike(id, is_liked, like, pLike, index) {
         arr[index].like++;
         pLike.html("Like: " + arr[index].like);
         arr[index].is_liked = true;
+        $(id + ".likeButton").addClass("liked");
       },
       error: function (error) {
         console.error("Error fetching liked users:", error);
